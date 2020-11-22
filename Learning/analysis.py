@@ -35,8 +35,8 @@ with the training of the SVHN student model (500 label queries) is:
 python analysis.py
   --counts_file=svhn_250_teachers_labels.npy
   --max_examples=500  
-  --distributed_noise=True
-  --ratio_successful_teachers=0.9
+  --distributed_noise=<True/False>
+  --ratio_successful_teachers=<1/0.9/0.7>
 
 """
 import os
@@ -53,7 +53,7 @@ from input import maybe_download
 # These parameters can be changed to compute bounds for different failure rates
 # or different model predictions.
 
-tf.flags.DEFINE_integer("moments",8, "Number of moments")
+tf.flags.DEFINE_integer("moments",25, "Number of moments")
 tf.flags.DEFINE_float("noise_eps", 0.1, "Eps value for each call to noisymax.")
 tf.flags.DEFINE_float("delta", 1e-5, "Target value of delta.")
 tf.flags.DEFINE_string("counts_file","","Numpy matrix with raw counts")
@@ -73,12 +73,12 @@ FLAGS = tf.flags.FLAGS
 
 
 def compute_q_noisy_max(counts, noise_eps, tau):
-  """returns ~ Pr[outcome != winner].
+  """returns ~ probability of [outcome != winner].
     param counts: a list of scores
     param noise_eps: noise inverse scale parameter
     return: upper bound of the probability that outcome is different from true winner.
   """
-  # For the proof of the upper bound, see Subsection 1.3 of the supplementary material
+  # For the proof of the upper bound, see Section A.4 of the supplementary material
 
   winner = np.argmax(counts)
   counts_normalized = noise_eps * (counts - counts[winner])
@@ -93,7 +93,8 @@ def compute_q_noisy_max(counts, noise_eps, tau):
   else:
     for c in counts_rest:
       gap = -c
-      q += math.exp(-gap) * (1/2 + math.pow(gap, tau/2)/(tau*math.pow(2, 5/2*tau-1)*math.pow(special.gamma(tau), 2)) * math.pow(3/2*tau, 3/2*tau) * math.pow(2/tau-3, 1-3/2*tau))
+      q += math.exp(-gap) * (1/2 + math.pow(gap, tau/2)/(tau*math.pow(2, 5/2*tau-1)*math.pow(special.gamma(tau), 2))
+                             * math.pow(3/2*tau, 3/2*tau) * math.pow(2/tau-3, 1-3/2*tau))
 
   return min(q, 1.0 - (1.0/len(counts)))
 
@@ -112,10 +113,9 @@ def logmgf_exact(q, priv_eps, l):
     t_two = q * math.exp(priv_eps * l)
     t = t_one + t_two
     log_t = math.log(t)
+    return min(priv_eps * l, 0.5 * priv_eps * priv_eps * l * (l + 1), log_t)
   else:
-    log_t = priv_eps * l
-
-  return min(priv_eps * l, 0.5 * priv_eps * priv_eps * l * (l + 1), log_t)
+    return min(priv_eps * l, 0.5 * priv_eps * priv_eps * l * (l + 1))
 
 def priv_eps_per_query(noise_eps, tau):
   """
@@ -135,10 +135,10 @@ def priv_eps_per_query(noise_eps, tau):
 
     g = lambda t: (1 - F(t)) / (1-F(t+2))
 
-    g_der = lambda t: ((1-F(t))*f(t+2) - (1-F(t+2))*f(t))/math.pow(1-F(t+2), 2)
+    g_dif = lambda t: ((1-F(t))*f(t+2) - (1-F(t+2))*f(t))/math.pow(1-F(t+2), 2)
 
     if tau > 1 / 2:
-      priv_eps = min(math.log(1 + (F(1) - F(-1)) / (1-F(2))), math.log(g(0) - g_der(0)))
+      priv_eps = min(math.log(1 + (F(1) - F(-1)) / (1-F(2))), math.log(g(0) - g_dif(0)))
     else:
       priv_eps = math.log(1 + (F(1) - F(-1)) / (1-F(2)))
 

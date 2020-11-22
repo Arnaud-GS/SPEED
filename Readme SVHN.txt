@@ -1,5 +1,5 @@
 # The code for learning (except improved GAN) and for DP analysis was forked from https://github.com/tensorflow/privacy/tree/master/research/pate_2017 (described in the following paper : https://arxiv.org/abs/1610.05755)
-# and adapted to our work, especially for BHBC framework (flag distributed_noise = True)
+# and adapted to our work, especially for the distributed noise mode (flag distributed_noise = True)
 
 # The code for improved GAN was forked and adapted from https://github.com/openai/improved-gan
 

@@ -26,9 +26,9 @@ import tensorflow.compat.v1 as tf
 
 FLAGS=tf.flags.FLAGS
 
-tf.flags.DEFINE_boolean('distributed_noise', False, 'Activate beyond honest but curious mode')
+tf.flags.DEFINE_boolean('distributed_noise', False, 'Activate distributed noise mode')
 
-tf.flags.DEFINE_integer('nb_successful_teachers', None, 'Number of teachers who generate the individual noise properly')
+tf.flags.DEFINE_integer('nb_successful_teachers', None, 'Number of teachers whose noise is kept secret (a.k.a. successful teachers)')
 
 tf.flags.DEFINE_string('ohe_file','','Stores the one-hot encodings.')
 
@@ -71,11 +71,11 @@ def noisy_max(logits, lap_scale, return_clean_votes=False):
   This aggregation mechanism takes the softmax/logit output of several models
   resulting from inference on identical inputs and computes the noisy-max of
   the votes for candidate classes to select a label for each sample: it
-  adds Laplacian noise to label counts and returns the most frequent label.
+  adds Laplace noise to label counts and returns the most frequent label.
   :param logits: logits or probabilities for each sample
-  :param lap_scale: scale of the Laplacian noise to be added to counts
+  :param lap_scale: scale of the Laplace noise to be added to counts
   :param return_clean_votes: if set to True, also returns clean votes (without
-                      Laplacian noise). This can be used to perform the
+                      Laplace noise). This can be used to perform the
                       privacy analysis of this aggregation mechanism.
   :return: pair of result and (if clean_votes is set to True) the clean counts
            for each class per sample and the original labels produced by

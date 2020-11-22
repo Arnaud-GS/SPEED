@@ -33,7 +33,7 @@ tf.flags.DEFINE_integer('nb_teachers', 250, 'Teachers in the ensemble.')
 tf.flags.DEFINE_integer('stdnt_share', 100,
                         'Student share (last index) of the test data')
 tf.flags.DEFINE_integer('lap_scale', 0.31,
-                        'Scale of the Laplacian noise added for privacy')
+                        'Scale of the Laplace noise added for privacy')
 tf.flags.DEFINE_string('ohe_after_HE_argmax_dir','/ohe_after_argmax','Path and begining of the file where ohe after argmax have been stored.')
 tf.flags.DEFINE_string('data_after_argmax_dir','/tmp/ohe_after_argmax_dir','Where .npy files will be stored.')
 tf.flags.DEFINE_boolean('distributed_noise', False, 'Activate beyond honest but curious mode')
